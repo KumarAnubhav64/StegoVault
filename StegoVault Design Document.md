@@ -1,4 +1,139 @@
-# **StegoVault - Design Document**
+# StegoVault: Cryptographic Image-Based Password Vault
+
+## 1️⃣ Project Overview
+**StegoVault** is a secure password vault that encrypts passwords and hides them inside images using **LSB steganography**. The system ensures confidentiality by encrypting passwords with **AES-GCM** and **Argon2-based key derivation**. Users interact with the vault via a **CLI**, allowing them to store, retrieve, and manage credentials.
+
+## 2️⃣ MVP Scope
+### **Core Features**
+✅ Encrypt passwords securely (AES-GCM, Argon2 for key derivation).  
+✅ Embed encrypted passwords into images (using LSB steganography).  
+✅ Extract passwords from images (decrypt them securely).  
+✅ Maintain a vault index (JSON format).  
+✅ Provide a simple CLI for vault interaction.
+
+### **What’s NOT in MVP**
+❌ No GUI (only CLI for now).  
+❌ No browser extension or cloud sync (local storage only).  
+❌ No multi-user support (single-user application).  
+
+## 3️⃣ Vault Architecture
+### **Vault Index Structure (JSON Format)**
+```json
+{
+  "entries": [
+    {
+      "name": "Google Account",
+      "image": "vault_images/google_vault.png",
+      "checksum": "a1b2c3d4...",
+      "created_at": "2025-03-25T12:00:00"
+    },
+    {
+      "name": "GitHub",
+      "image": "vault_images/github_vault.png",
+      "checksum": "d4e5f6g7...",
+      "created_at": "2025-03-25T12:30:00"
+    }
+  ]
+}
+```
+**Each entry stores:**  
+- `name`: The name of the stored password.  
+- `image`: The path to the image containing the password.  
+- `checksum`: Hash for integrity verification.  
+- `created_at`: Timestamp of password storage.  
+
+## 4️⃣ Security & Encryption
+### **Key Derivation (Argon2)**
+Instead of storing passwords directly, we derive a **secure key** from the master password using **Argon2**.
+```python
+from argon2 import PasswordHasher
+ph = PasswordHasher()
+hashed_master_password = ph.hash("SuperSecureMasterPassword")
+```
+
+### **AES-GCM Encryption**
+Passwords are encrypted using **AES-GCM**, which ensures both **confidentiality** and **integrity**.
+```python
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+import os
+key = os.urandom(32)  # Secure random key
+cipher = Cipher(algorithms.AES(key), modes.GCM(os.urandom(12)))
+```
+
+## 5️⃣ Steganography Approach
+We use **LSB (Least Significant Bit) encoding** to hide the encrypted password inside an image.
+- The **encrypted password is split into bits** and stored in the **least significant bits** of image pixels.
+- The **retrieval process extracts bits**, reconstructs the encrypted password, and decrypts it.
+
+```python
+from PIL import Image
+def embed_data(image_path, data):
+    img = Image.open(image_path)
+    # Encode the data into image pixels
+```
+
+## 6️⃣ CLI Commands
+### **1️⃣ Add a Password**
+```bash
+python vault_cli.py add "mysecurepassword" --name "Google"
+```
+- Encrypts password.
+- Stores it in an image.
+- Saves entry in vault index.
+
+### **2️⃣ Retrieve a Password**
+```bash
+python vault_cli.py get --name "Google"
+```
+- Extracts password from image.
+- Decrypts and displays it.
+
+### **3️⃣ List Stored Passwords**
+```bash
+python vault_cli.py list
+```
+- Displays all stored passwords.
+
+## 7️⃣ Tech Stack
+| Component        | Technology           |
+|-----------------|----------------------|
+| Encryption      | Python `cryptography`, Argon2 |
+| Stego Engine   | Python `Pillow`       |
+| Vault Storage  | JSON / SQLite (Encrypted) |
+| CLI            | Python + `argparse` |
+
+## 8️⃣ Project Structure
+```
+StegoVault/
+│
+├── core/
+│   ├── crypto.py
+│   ├── stego_engine.py
+│   └── utils.py
+│
+├── vault/
+│   ├── manager.py
+│   └── vault_index.json
+│
+├── cli/
+│   └── vault_cli.py
+│
+├── assets/
+│   └── sample_images/
+│
+└── tests/
+```
+
+## 9️⃣ Next Steps
+### **Step 2: Setup Environment & Initial Code**
+✅ Create GitHub repo.  
+✅ Setup virtual environment.  
+✅ Install dependencies (`cryptography`, `Pillow`, `argon2-cffi`).  
+✅ Start implementing **encryption & stego encoding** functions.  
+
+---
+
+Let me know if you want any refinements or additions! 🚀# **StegoVault - Design Document**
 
 ## **1. Project Overview**
 ### **1.1 Project Name:**
@@ -131,7 +266,5 @@ The system will follow a **modular architecture** with separate modules for encr
 1️⃣ Starter Code for **Encryption & Steganography**?
 2️⃣ Implementation of **Vault Manager**?
 3️⃣ CLI **Command Line Interface** Prototype?
-
-Let’s build StegoVault **the right way, with full focus!** 🔥💪
 
 
